@@ -1,4 +1,5 @@
 const Listing=require("../models/listing")
+const summarizeText = require("../utils/summarizeReviews");
 module.exports.index=async(req,res)=>{
     let alllistings= await Listing.find({});
     res.render("./listings/index.ejs",{alllistings});
@@ -6,15 +7,30 @@ module.exports.index=async(req,res)=>{
 module.exports.renderNewForm=(req,res)=>{
     res.render("./listings/new.ejs");
 };
-module.exports.showListing=async (req,res)=>{
-    let {id}=req.params;
-    const listing=await Listing.findById(id).populate({path:"reviews",populate:{path:"author"}}).populate("owner");
-    if(!listing){
-        req.flash("error","Listing you requested doesnot exist!");
-       return res.redirect("/listings");
-    }
-    res.render("./listings/show.ejs",{listing});
-    };
+module.exports.showListing = async (req, res) => {
+  const { id } = req.params;
+  const listing = await Listing.findById(id)
+    .populate({
+      path: "reviews",
+      populate: { path: "author" }
+    })
+    .populate("owner");
+
+  if (!listing) {
+    req.flash("error", "Listing not found!");
+    return res.redirect("/listings");
+  }
+
+  // Summarize only if reviews exist
+//   let summary = "";
+//   if (listing.reviews.length > 0) {
+//     const allComments = listing.reviews.map(r => r.comment).join(". ");
+//     summary = await summarizeText(allComments);
+//   }
+//   listing.reviewSummary= summary;
+//   await listing.save();
+  res.render("listings/show", { listing });
+};
 module.exports.createListing=async(req,res,next)=>{
     let url=req.file.path;
     let filename =req.file.filename;
